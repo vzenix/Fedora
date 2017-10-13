@@ -88,9 +88,6 @@ function firewalld_new_service {
   local ports=$(getparamva -p,--ports "$@")
   local protocols=$(getparamva -t,--protocols "$@")
 
-  echo "$name"
-  echo "$ports"
-  echo "$protocols"
   if is_set $name && is_set $ports && is_set $protocols; then
     # se realiza esta opción para tener en cuenta posibles modificaciones
     firewall-cmd --reload >/dev/null 2>&1 # se pone /dev/null para que no salga la palabra success
