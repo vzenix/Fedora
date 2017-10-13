@@ -61,9 +61,15 @@ function config_firewalld {
   # Mostrar las zonas activas
   ACTIVE_ZONE=$(firewall-cmd --get-active-zone | head -n1)
   # funcion para añadir un nuevo servicio a firewalld
-  firewalld_new_service --name webmin --ports 10000 -t tcp,udp
+  firewalld_new_service --name webmin, --ports 10000 --protocols tcp,udp
+  firewalld_new_service --name tomcat, --ports 8080, --protocols tcp,
+  firewalld_new_service --name solr, --ports 8983, --protocols tcp,
+  firewalld_new_service --name karaf, --ports 8983, --protocols tcp,
   # añadimos el servicio a la zona activa
   firewall-cmd --permanent --zone=$ACTIVE_ZONE --add-service=webmin
+  firewall-cmd --permanent --zone=$ACTIVE_ZONE --add-service=tomcat
+  firewall-cmd --permanent --zone=$ACTIVE_ZONE --add-service=solr
+  firewall-cmd --permanent --zone=$ACTIVE_ZONE --add-service=karaf
   # esto tenemos que usarlo si el servicio ya esta asignado a la zona
   #firewall-cmd --permanent --zone=$ACTIVE_ZONE --remove-service=webmin
 }
@@ -82,6 +88,9 @@ function firewalld_new_service {
   local ports=$(getparamva -p,--ports "$@")
   local protocols=$(getparamva -t,--protocols "$@")
 
+  echo "$name"
+  echo "$ports"
+  echo "$protocols"
   if is_set $name && is_set $ports && is_set $protocols; then
     # se realiza esta opción para tener en cuenta posibles modificaciones
     firewall-cmd --reload >/dev/null 2>&1 # se pone /dev/null para que no salga la palabra success
@@ -96,7 +105,7 @@ function firewalld_new_service {
         for proto in $protocols; do
           for port in $ports; do
             # añadimos el puerto al servicio
-            firewall-cmd --permanent --service=webmin --add-port=$port/$proto
+            firewall-cmd --permanent --service=$1 --add-port=$port/$proto
           done
         done
       fi
@@ -305,16 +314,17 @@ function menu {
     echo "           * 1.- Crear el usuario                 *"
     echo "           * 2.- Cambiar estado de SELinux        *"
     echo "           * 3.- Cambiar estado de Firewall       *"
-    echo "           * 4.- Prueba de pausa                  *"
-    echo "           * 5.- Prueba de red                    *"
-    echo "           * 6.- Prueba de internet               *"
-    echo "           * 7.- Instalar NMTui                   *"
-    echo "           * 8.- Instalar TeamViewer              *"
-    echo "           * 9.- Instalar TigerVNC                *"
-    echo "           * 10.- Comprobar dependencias          *"
-    echo "           * 11.- Cambiar puerto de Cockpit       *"
-    echo "           * 12.- Crear mensage de ISSUE          *"
-    echo "           * 13.- Cambiar el nombre a la maquina  *"
+    echo "           * 4.- Configurar FirewallD Vcomm       *"
+    echo "           * 5.- Prueba de pausa                  *"
+    echo "           * 6.- Prueba de red                    *"
+    echo "           * 7.- Prueba de internet               *"
+    echo "           * 8.- Instalar NMTui                   *"
+    echo "           * 9.- Instalar TeamViewer              *"
+    echo "           * 10.- Instalar TigerVNC                *"
+    echo "           * 11.- Comprobar dependencias          *"
+    echo "           * 12.- Cambiar puerto de Cockpit       *"
+    echo "           * 13.- Crear mensage de ISSUE          *"
+    echo "           * 14.- Cambiar el nombre a la maquina  *"
     echo "           *                                      *"
     echo "           * 0.- Salir                            *"
     echo "           ****************************************"
@@ -340,6 +350,7 @@ function menu {
         menu;
         ;;
         4)
+        config_firewalld;
         pause -m;
         menu;
         ;;
